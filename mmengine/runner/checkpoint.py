@@ -18,8 +18,12 @@ from mmengine.fileio import FileClient, get_file_backend
 from mmengine.fileio import load as load_file
 from mmengine.logging import print_log
 from mmengine.model import BaseTTAModel, is_model_wrapper
-from mmengine.utils import (apply_to, deprecated_function, digit_version,
-                            mkdir_or_exist)
+from mmengine.utils import (
+    apply_to,
+    deprecated_function,
+    digit_version,
+    mkdir_or_exist,
+)
 from mmengine.utils.dl_utils import load_url
 
 # `MMENGINE_HOME` is the highest priority directory to save checkpoints
@@ -308,7 +312,13 @@ class CheckpointLoader:
                 return cls._schemes[p]
 
     @classmethod
-    def load_checkpoint(cls, filename, map_location=None, logger='current'):
+    def load_checkpoint(
+        cls,
+        filename,
+        map_location=None,
+        logger="current",
+        weights_only: bool = False,
+    ):
         """load checkpoint through URL scheme path.
 
         Args:
@@ -331,7 +341,7 @@ class CheckpointLoader:
 
 
 @CheckpointLoader.register_scheme(prefixes='')
-def load_from_local(filename, map_location):
+def load_from_local(filename, map_location, weights_only=False):
     """load checkpoint by local file path.
 
     Args:
@@ -344,7 +354,9 @@ def load_from_local(filename, map_location):
     filename = osp.expanduser(filename)
     if not osp.isfile(filename):
         raise FileNotFoundError(f'{filename} can not be found.')
-    checkpoint = torch.load(filename, map_location=map_location)
+    checkpoint = torch.load(
+        filename, map_location=map_location, weights_only=weights_only
+    )
     return checkpoint
 
 
@@ -528,7 +540,7 @@ def load_from_mmcls(filename, map_location=None):
     return checkpoint
 
 
-def _load_checkpoint(filename, map_location=None, logger=None):
+def _load_checkpoint(filename, map_location=None, logger=None, weights_only=False):
     """Load checkpoint from somewhere (modelzoo, file, url).
 
     Args:
@@ -545,7 +557,9 @@ def _load_checkpoint(filename, map_location=None, logger=None):
         OrderedDict storing model weights or a dict containing other
         information, which depends on the checkpoint.
     """
-    return CheckpointLoader.load_checkpoint(filename, map_location, logger)
+    return CheckpointLoader.load_checkpoint(
+        filename, map_location, logger, weights_only=weights_only
+    )
 
 
 def _load_checkpoint_with_prefix(prefix, filename, map_location=None):
@@ -608,12 +622,15 @@ def _load_checkpoint_to_model(model,
     return checkpoint
 
 
-def load_checkpoint(model,
-                    filename,
-                    map_location=None,
-                    strict=False,
-                    logger=None,
-                    revise_keys=[(r'^module\.', '')]):
+def load_checkpoint(
+    model,
+    filename,
+    map_location=None,
+    strict=False,
+    logger=None,
+    revise_keys=[(r"^module\.", "")],
+    weights_only=False,
+):
     """Load checkpoint from a file or URI.
 
     Args:
@@ -633,7 +650,9 @@ def load_checkpoint(model,
     Returns:
         dict or OrderedDict: The loaded checkpoint.
     """
-    checkpoint = _load_checkpoint(filename, map_location, logger)
+    checkpoint = _load_checkpoint(
+        filename, map_location, logger, weights_only=weights_only
+    )
     # OrderedDict is a subclass of dict
     if not isinstance(checkpoint, dict):
         raise RuntimeError(
