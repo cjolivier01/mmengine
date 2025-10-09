@@ -1,4 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+from __future__ import annotations
 import itertools
 from collections.abc import Sized
 from typing import Any, List, Union
@@ -162,7 +163,7 @@ class InstanceData(BaseDataElement):
 
     __setitem__ = __setattr__
 
-    def __getitem__(self, item: IndexType) -> 'InstanceData':
+    def __getitem__(self, item: IndexType) -> "InstanceData":  # type: ignore
         """
         Args:
             item (str, int, list, :obj:`slice`, :obj:`numpy.ndarray`,
