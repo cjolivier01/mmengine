@@ -212,16 +212,22 @@ class InstanceData(BaseDataElement):
                 if isinstance(v, torch.Tensor):
                     new_data[k] = v[item]
                 elif isinstance(v, np.ndarray):
-                    new_data[k] = v[item.cpu().numpy()]
+                    # Promote NumPy arrays to tensors on the same device as
+                    # the index tensor to avoid synchronizing the index back
+                    # to CPU. This keeps indexing entirely on the device of
+                    # ``item`` (including CUDA).
+                    v_t = torch.as_tensor(v, device=item.device)
+                    new_data[k] = v_t[item]
                 elif isinstance(
                         v, (str, list, tuple)) or (hasattr(v, '__getitem__')
                                                    and hasattr(v, 'cat')):
-                    # convert to indexes from BoolTensor
+                    # convert to indexes from BoolTensor / LongTensor
                     if isinstance(item, BoolTypeTensor.__args__):
-                        indexes = torch.nonzero(item).view(
-                            -1).cpu().numpy().tolist()
+                        idx_tensor = torch.nonzero(
+                            item, as_tuple=False).view(-1)
                     else:
-                        indexes = item.cpu().numpy().tolist()
+                        idx_tensor = item.view(-1)
+                    indexes = idx_tensor.tolist()
                     slice_list = []
                     if indexes:
                         for index in indexes:
