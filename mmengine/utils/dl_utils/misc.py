@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import pkgutil
+import importlib.util
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -10,8 +10,9 @@ from ..misc import is_tuple_of
 from .parrots_wrapper import _BatchNorm, _InstanceNorm
 
 
-def is_norm(layer: nn.Module,
-            exclude: Optional[Union[type, Tuple[type]]] = None) -> bool:
+def is_norm(
+    layer: nn.Module, exclude: Optional[Union[type, Tuple[type]]] = None
+) -> bool:
     """Check if a layer is a normalization layer.
 
     Args:
@@ -23,11 +24,12 @@ def is_norm(layer: nn.Module,
     """
     if exclude is not None:
         if not isinstance(exclude, tuple):
-            exclude = (exclude, )
+            exclude = (exclude,)
         if not is_tuple_of(exclude, type):
             raise TypeError(
                 f'"exclude" must be either None or type or a tuple of types, '
-                f'but got {type(exclude)}: {exclude}')
+                f"but got {type(exclude)}: {exclude}"
+            )
 
     if exclude and isinstance(layer, exclude):
         return False
@@ -36,10 +38,12 @@ def is_norm(layer: nn.Module,
     return isinstance(layer, all_norm_bases)
 
 
-def tensor2imgs(tensor: torch.Tensor,
-                mean: Optional[Tuple[float, float, float]] = None,
-                std: Optional[Tuple[float, float, float]] = None,
-                to_bgr: bool = True):
+def tensor2imgs(
+    tensor: torch.Tensor,
+    mean: Optional[Tuple[float, float, float]] = None,
+    std: Optional[Tuple[float, float, float]] = None,
+    to_bgr: bool = True,
+):
     """Convert tensor to 3-channel images or 1-channel gray images.
 
     Args:
@@ -64,11 +68,12 @@ def tensor2imgs(tensor: torch.Tensor,
     channels = tensor.size(1)
     assert channels in [1, 3]
     if mean is None:
-        mean = (0, ) * channels
+        mean = (0,) * channels
     if std is None:
-        std = (1, ) * channels
-    assert (channels == len(mean) == len(std) == 3) or \
-           (channels == len(mean) == len(std) == 1 and not to_bgr)
+        std = (1,) * channels
+    assert (channels == len(mean) == len(std) == 3) or (
+        channels == len(mean) == len(std) == 1 and not to_bgr
+    )
     mean = tensor.new_tensor(mean).view(1, -1)
     std = tensor.new_tensor(std).view(1, -1)
     tensor = tensor.permute(0, 2, 3, 1) * std + mean
@@ -106,5 +111,4 @@ def mmcv_full_available() -> bool:
         import mmcv  # noqa: F401
     except ImportError:
         return False
-    ext_loader = pkgutil.find_loader('mmcv._ext')
-    return ext_loader is not None
+    return importlib.util.find_spec("mmcv._ext") is not None
