@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import importlib.util
+from importlib.util import find_spec
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -111,4 +112,8 @@ def mmcv_full_available() -> bool:
         import mmcv  # noqa: F401
     except ImportError:
         return False
+<<<<<<< Updated upstream
     return importlib.util.find_spec("mmcv._ext") is not None
+=======
+    return find_spec("mmcv._ext") is not None
+>>>>>>> Stashed changes
